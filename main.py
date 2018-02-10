@@ -28,6 +28,7 @@ osx_dict_kana = 'h'
 notice_requesting = '['
 notice_checked = ']'
 notice_clear = '\''
+google = 'g'
 
 arrow_up_code = 16777235
 arrow_down_code = 16777237
@@ -184,6 +185,8 @@ def newKeyHandler(self, evt):
         self._answerCard(1)
     elif key_code == arrow_right_code and self.state == "answer":
         self._answerCard(2 if cnt <= 3 else 3)
+    elif key == google:
+        openGoogle(card.note())
     else:
         origKeyHandler(self, evt)
 
@@ -202,6 +205,14 @@ def openDict(note, SQ=False):
         if match:
             audio_name = match.group(1)
         os.system("echo '%s' | tr -d '\n'| pbcopy" % audio_name.encode('utf8'))
+    webbrowser.open(url)
+
+def openGoogle(note):
+    if 'word' not in note:
+        return
+    word = note['word']
+    # sys.stderr.write(note['word'])
+    url = 'https://www.google.co.jp/search?q={}'.format(urllib.quote(word.encode('utf8')))
     webbrowser.open(url)
 
 
@@ -246,6 +257,12 @@ def menuSetNotice(self, key):
     note = self.card.note()
     setNotice(note, key)
 
+def menuOpenGoogle(self):
+    if not self.card:
+        return
+    note = self.card.note()
+    openGoogle(note)
+
 
 def onSetupMenus(self):
     """Create menu entry and set attributes up"""
@@ -272,6 +289,9 @@ def onSetupMenus(self):
     a = menu.addAction('Clear notice')
     a.setShortcut(QKeySequence("Ctrl+'"))
     a.triggered.connect(lambda _, o=self: menuSetNotice(o, "'"))
+    a = menu.addAction('Open Google')
+    a.setShortcut(QKeySequence("Ctrl+G"))
+    a.triggered.connect(lambda _, o=self: menuOpenGoogle(o))
 
 # sys.stderr.write("sys.version_info:"+str(sys.version_info))
 addHook("browser.setupMenus", onSetupMenus)

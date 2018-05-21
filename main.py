@@ -10,7 +10,7 @@ import urllib
 from aqt import mw
 from aqt.utils import tooltip, getText
 from aqt.reviewer import Reviewer
-from aqt.qt import QKeySequence
+from aqt.qt import QKeySequence, Qt
 from anki.hooks import addHook
 
 reschedule_shortcut = 't'
@@ -22,13 +22,14 @@ reschedule_tomorrow = '.'
 edit_audio = 'o'
 edit_sentence_audio = 'i'
 view_dict = 'k'
-view_dict_skip_query = 'l'
+view_dict_only_audio = 'l'
 osx_dict = 'j'
 osx_dict_kana = 'h'
 notice_requesting = '['
 notice_checked = ']'
 notice_clear = '\''
 google = 'g'
+hide_title_bar = 'm'
 
 arrow_up_code = 16777235
 arrow_down_code = 16777237
@@ -158,8 +159,8 @@ def newKeyHandler(self, evt):
 
     elif key in [edit_audio, edit_sentence_audio]:
         editAudio(card.note(), True if key == edit_sentence_audio else False)
-    elif key in [view_dict, view_dict_skip_query]:
-        openDict(card.note(), True if key == view_dict_skip_query else False)
+    elif key in [view_dict, view_dict_only_audio]:
+        openDict(card.note(), True if key == view_dict_only_audio else False)
     elif key == osx_dict:
         note = self.card.note()
         if 'word' not in note:
@@ -187,6 +188,12 @@ def newKeyHandler(self, evt):
         self._answerCard(2 if cnt <= 3 else 3)
     elif key == google:
         openGoogle(card.note())
+    elif key == hide_title_bar:
+        if mw.windowFlags() & Qt.FramelessWindowHint:
+            mw.setWindowFlags(Qt.Window)
+        else:
+            mw.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        mw.show()
     else:
         origKeyHandler(self, evt)
 
@@ -198,7 +205,7 @@ def openDict(note, SQ=False):
     # sys.stderr.write(note['word'])
     url = DICT_URL + '?word=' + urllib.quote(word.encode('utf8'))
     if SQ:
-        url += '&skipQuery=true'
+        url += '&onlyAudio=true'
     if 'audio' in note:
         audio = note['audio']
         match = re.search("\[sound:(.*?)\.mp3\]", audio)
@@ -271,7 +278,7 @@ def onSetupMenus(self):
     a = menu.addAction('Open Dict')
     a.setShortcut(QKeySequence("Ctrl+K"))
     a.triggered.connect(lambda _, o=self: menuOpenDict(o, False))
-    a = menu.addAction('Open Dict (Skip Query)')
+    a = menu.addAction('Open Dict (Only Audio)')
     a.setShortcut(QKeySequence("Ctrl+L"))
     a.triggered.connect(lambda _, o=self: menuOpenDict(o, True))
     a = menu.addAction('Edit Audio')

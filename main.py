@@ -47,7 +47,8 @@ class AutoSync:
     def syncDecks(self):
         """Force sync if in any of the below states"""
         self.timer = None
-        if mw.state in ["deckBrowser", "overview", "review"]:
+        # if mw.state in ["deckBrowser", "overview", "review"]:
+        if mw.state in ["overview", "review"]:
             mw.onSync()
         else:
             # Not able to sync. Wait another 2 minutes

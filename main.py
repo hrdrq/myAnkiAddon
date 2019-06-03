@@ -1,46 +1,151 @@
 # encoding: utf-8
 
-import os
 import re
-import sys
-import random
+import os
+from urllib.parse import quote
 import webbrowser
-import urllib
+import random
 
 from aqt import mw
 from aqt.utils import tooltip, getText
+from anki.hooks import addHook
 from aqt.reviewer import Reviewer
 from aqt.qt import QKeySequence, Qt
-from anki.hooks import addHook
 
-reschedule_shortcut = 't'
-reschedule_level1 = 'z'
-reschedule_level2 = 'x'
-reschedule_level3 = 'c'
-reschedule_level4 = 'v'
-reschedule_tomorrow = '.'
-edit_audio = 'o'
-edit_sentence_audio = 'i'
-view_dict = 'k'
-view_dict_only_audio = 'l'
-osx_dict = 'j'
-osx_dict_kana = 'h'
-notice_requesting = '['
-notice_checked = ']'
-notice_clear = '\''
-google = 'g'
-hide_title_bar = 'm'
-
-arrow_up_code = 16777235
-arrow_down_code = 16777237
-arrow_left_code = 16777234
-arrow_right_code = 16777236
+OPEN_DICT = "Alt+V"
+OPEN_DICT_KANA = "Alt+F"
+OPEN_WEB_DICT = "Alt+A"
+OPEN_WEB_DICT_AUDIO = "Alt+Z"
+EDIT_AUDIO = "Alt+X"
+EDIT_SENTENCE_AUDIO = "Alt+S"
+OPEN_GOOGLE = "Alt+Q"
+ADD_REQ_NOTICE = "Alt+C"
+ADD_CHECK_NOTICE = "Alt+D"
+CLEAR_NOTICE = "Alt+E"
+ARROW_UP = "Up"
+ARROW_LEFT = "Left"
+ARROW_RIGHT = "Right"
+ARROW_DOWN = "Down"
+TOGGLE_TITLE_BAR = "Alt+B"
+RESCHEDULE = "Alt+R"
+RESCHEDULE_LEVEL1 = "Shift+Z"
+RESCHEDULE_LEVEL2 = "Shift+X"
+RESCHEDULE_LEVEL3 = "Shift+C"
+RESCHEDULE_LEVEL4 = "Shift+B"
+RESCHEDULE_TOMORROW = "Shift+A"
 
 DICT_URL = "http://localhost:8889/static/dm/index.html#/ja/pc"
 
 AUTOSYNC_IDLE_PERIOD = 20
 AUTOSYNC_RETRY_PERIOD = 2
 
+def openDict(note, kana=False):
+    if kana and 'kana' in note:
+        os.system('open dict:///' + note['kana'])
+    elif 'word' in note:
+        os.system('open dict:///' + note['word'])
+
+def openWebDict(note, only_audio=False):
+    if 'word' not in note:
+        return
+    word = note['word']
+    url = DICT_URL + '?word=' + quote(word.encode('utf8'))
+    if only_audio:
+        url += '&onlyAudio=true'
+    if 'audio' in note:
+        audio = note['audio']
+        match = re.search("\[sound:(.*?)\.mp3\]", audio)
+        if match:
+            audio_name = match.group(1)
+            os.system("echo '%s' | tr -d '\n'| pbcopy" % audio_name)
+    webbrowser.open(url)
+
+def editAudio(note, sentence=False):
+    if 'audio' not in note:
+        return
+    audio = note['sentence-audio' if sentence else 'audio']
+    match = re.search("\[sound:(.*?)\]", audio)
+    if match:
+        audio_file = mw.col.media.dir().replace(' ', '\ ') + '/' + match.group(1)
+        print('open -a /Applications/Audacity.app ' + audio_file)
+        os.system('open -a /Applications/Audacity.app ' + audio_file)
+
+def openGoogle(note):
+    if 'word' not in note:
+        return
+    word = note['word']
+    url = 'https://www.google.co.jp/search?q={}'.format(quote(word))
+    webbrowser.open(url)
+
+def setNotice(note, context):
+    if 'notice' in note:
+        note['notice'] = context
+        note.flush()
+
+def menuAction(self, params):
+    if not self.card:
+        return
+    note = self.card.note()
+    if params['type'] == 'dict':
+        openDict(note, params['kana'])
+    elif params['type'] == 'web_dict':
+        openWebDict(note, params['only_audio'])
+    elif params['type'] == 'audio':
+        editAudio(note, params['sentence'])
+    elif params['type'] == 'google':
+        openGoogle(note)
+    elif params['type'] == 'notice':
+        setNotice(note, params['context'])
+
+def arrow_handler(self, key):
+    cnt = mw.col.sched.answerButtons(mw.reviewer.card)
+    if key == 'up':
+        if self.state == "answer" and cnt == 4:
+            self._answerCard(2)
+    elif key == 'left':
+        if self.state == "question":
+            self.onEnterKey()
+        elif self.state == "answer":
+            self._answerCard(1)
+    elif key == 'right':
+        if self.state == "question":
+            self.onEnterKey()
+        elif self.state == "answer":
+            self._answerCard(2 if cnt <= 3 else 3)
+    elif key == 'down':
+        self.replayAudio()
+
+def toggle_title_bar():
+    if mw.windowFlags() & Qt.FramelessWindowHint:
+        mw.setWindowFlags(Qt.Window)
+    else:
+        mw.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+    mw.show()
+
+def reschedule(self, level=None):
+    if level is None:
+        dayString = getText("Number of days until next review: ")
+        try:
+            days = int(dayString[0])
+        except ValueError:
+            return
+    elif type(level) == int:
+        # level 1 : 5, 35
+        # level 2 : 35, 65
+        # level 3 : 65, 95
+        # level 4 : 95, 125
+        days = random.randint(5 + (level - 1) * 30, 5 + level * 30)
+    elif level == 'tomorrow':
+        days = 1
+    else:
+        return
+
+    card = self.reviewer.card
+    if days > 0:
+        self.checkpoint(_("Reschedule card"))
+        self.col.sched.reschedCards([card.id], days, days)
+        tooltip('Rescheduled for review in ' + str(days) + ' days')
+        self.reset()
 
 class AutoSync:
 
@@ -112,198 +217,68 @@ class AutoSync:
         addHook("sync", self.syncHook)
 
 
-def promptNewInterval(self, card):
-
-    dayString = getText("Number of days until next review: ")
-    try:
-        days = int(dayString[0])
-    except ValueError:
-        return
-
-    if days > 0:
-        mw.col.sched.reschedCards([card.id], days, days)
-        tooltip('Rescheduled for review in ' + str(days) + ' days')
-        mw.reset()
-
-# replace _keyHandler in reviewer.py to add a keybinding
-
-
-def newKeyHandler(self, evt):
-    key = unicode(evt.text())
-    key_code = evt.key()
-    # sys.stderr.write("key:"+str(key))
-    card = mw.reviewer.card
-    cnt = mw.col.sched.answerButtons(mw.reviewer.card)
-    if key == reschedule_shortcut:
-        mw.checkpoint(_("Reschedule card"))
-        promptNewInterval(self, card)
-
-    elif key in [reschedule_level1, reschedule_level2, reschedule_level3, reschedule_level4, reschedule_tomorrow]:
-        days = 0
-        if key == reschedule_level1:
-            # days = random.randint(1,100)
-            days = 15
-        elif key == reschedule_level2:
-            # days = random.randint(101,200)
-            days = 30
-        elif key == reschedule_level3:
-            # days = random.randint(201,300)
-            days = 45
-        elif key == reschedule_level4:
-            # days = random.randint(301,400)
-            days = 60
-        elif key == reschedule_tomorrow:
-            days = 1
-        mw.col.sched.reschedCards([card.id], days, days)
-        tooltip('Rescheduled for review in ' + str(days) + ' days')
-        mw.reset()
-
-    elif key in [edit_audio, edit_sentence_audio]:
-        editAudio(card.note(), True if key == edit_sentence_audio else False)
-    elif key in [view_dict, view_dict_only_audio]:
-        openDict(card.note(), True if key == view_dict_only_audio else False)
-    elif key == osx_dict:
-        note = self.card.note()
-        if 'word' not in note:
-            return
-        word = note['word']
-        os.system('open dict:///' + word.encode('utf8'))
-    elif key == osx_dict_kana:
-        note = self.card.note()
-        if 'kana' not in note:
-            return
-        kana = note['kana']
-        os.system('open dict:///' + kana.encode('utf8'))
-    elif key in [notice_requesting, notice_checked, notice_clear]:
-        note = card.note()
-        setNotice(note, key)
-    elif (key_code == arrow_left_code or key_code == arrow_right_code) and self.state == "question":
-        self._showAnswerHack()
-    elif key_code == arrow_up_code and self.state == "answer" and cnt == 4:
-        self._answerCard(2)
-    elif key_code == arrow_down_code:
-        self.replayAudio()
-    elif key_code == arrow_left_code and self.state == "answer":
-        self._answerCard(1)
-    elif key_code == arrow_right_code and self.state == "answer":
-        self._answerCard(2 if cnt <= 3 else 3)
-    elif key == google:
-        openGoogle(card.note())
-    elif key == hide_title_bar:
-        if mw.windowFlags() & Qt.FramelessWindowHint:
-            mw.setWindowFlags(Qt.Window)
-        else:
-            mw.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
-        mw.show()
-    else:
-        origKeyHandler(self, evt)
-
-
-def openDict(note, SQ=False):
-    if 'word' not in note:
-        return
-    word = note['word']
-    # sys.stderr.write(note['word'])
-    url = DICT_URL + '?word=' + urllib.quote(word.encode('utf8'))
-    if SQ:
-        url += '&onlyAudio=true'
-    if 'audio' in note:
-        audio = note['audio']
-        match = re.search("\[sound:(.*?)\.mp3\]", audio)
-        if match:
-            audio_name = match.group(1)
-        os.system("echo '%s' | tr -d '\n'| pbcopy" % audio_name.encode('utf8'))
-    webbrowser.open(url)
-
-def openGoogle(note):
-    if 'word' not in note:
-        return
-    word = note['word']
-    # sys.stderr.write(note['word'])
-    url = 'https://www.google.co.jp/search?q={}'.format(urllib.quote(word.encode('utf8')))
-    webbrowser.open(url)
-
-
-def editAudio(note, sentence=False):
-    if 'audio' not in note:
-        return
-    audio = note['sentence-audio' if sentence else 'audio']
-    match = re.search("\[sound:(.*?)\]", audio)
-    if match:
-        audio_file = mw.col.media.dir().replace(' ', '\ ') + '/' + match.group(1)
-        os.system(
-            'open -a /Applications/Audacity.app ' + audio_file.encode('utf8'))
-
-
-def menuOpenDict(self, SQ):
-    if not self.card:
-        return
-    note = self.card.note()
-    openDict(note, SQ)
-
-
-def menuEditAudio(self, sentence):
-    if not self.card:
-        return
-    note = self.card.note()
-    editAudio(note, sentence)
-
-def setNotice(note, key):
-    if 'notice' in note:
-        notice = note['notice']
-        if key == notice_requesting:
-            note['notice'] = 'requesting'
-        elif key == notice_checked:
-            note['notice'] = 'checked'
-        elif key == notice_clear:
-            note['notice'] = ''
-        note.flush()
-
-def menuSetNotice(self, key):
-    if not self.card:
-        return
-    note = self.card.note()
-    setNotice(note, key)
-
-def menuOpenGoogle(self):
-    if not self.card:
-        return
-    note = self.card.note()
-    openGoogle(note)
-
-
 def onSetupMenus(self):
-    """Create menu entry and set attributes up"""
     menu = self.form.menuEdit
     menu.addSeparator()
     a = menu.addAction('Open Dict')
-    a.setShortcut(QKeySequence("Ctrl+K"))
-    a.triggered.connect(lambda _, o=self: menuOpenDict(o, False))
-    a = menu.addAction('Open Dict (Only Audio)')
-    a.setShortcut(QKeySequence("Ctrl+L"))
-    a.triggered.connect(lambda _, o=self: menuOpenDict(o, True))
+    a.setShortcut(QKeySequence(OPEN_DICT))
+    a.triggered.connect(lambda: menuAction(self, dict(type='dict', kana=False)))
+    a = menu.addAction('Open Dict (kana)')
+    a.setShortcut(QKeySequence(OPEN_DICT_KANA))
+    a.triggered.connect(lambda: menuAction(self, dict(type='dict', kana=True)))
+    a = menu.addAction('Open Web Dict')
+    a.setShortcut(QKeySequence(OPEN_WEB_DICT))
+    a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=False)))
+    a = menu.addAction('Open Web Dict (Only Audio)')
+    a.setShortcut(QKeySequence(OPEN_WEB_DICT_AUDIO))
+    a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=False)))
     a = menu.addAction('Edit Audio')
-    a.setShortcut(QKeySequence("Ctrl+O"))
-    a.triggered.connect(lambda _, o=self: menuEditAudio(o, False))
+    a.setShortcut(QKeySequence(EDIT_AUDIO))
+    a.triggered.connect(lambda: menuAction(self, dict(type='audio', sentence=False)))
     a = menu.addAction('Edit Sentence Audio')
-    a.setShortcut(QKeySequence("Ctrl+I"))
-    a.triggered.connect(lambda _, o=self: menuEditAudio(o, True))
-    a = menu.addAction('Add requesting to notice')
-    a.setShortcut(QKeySequence("Ctrl+["))
-    a.triggered.connect(lambda _, o=self: menuSetNotice(o, '['))
-    a = menu.addAction('Add checked to notice')
-    a.setShortcut(QKeySequence("Ctrl+]"))
-    a.triggered.connect(lambda _, o=self: menuSetNotice(o, ']'))
-    a = menu.addAction('Clear notice')
-    a.setShortcut(QKeySequence("Ctrl+'"))
-    a.triggered.connect(lambda _, o=self: menuSetNotice(o, "'"))
+    a.setShortcut(QKeySequence(EDIT_SENTENCE_AUDIO))
+    a.triggered.connect(lambda: menuAction(self, dict(type='audio', sentence=True)))
     a = menu.addAction('Open Google')
-    a.setShortcut(QKeySequence("Ctrl+G"))
-    a.triggered.connect(lambda _, o=self: menuOpenGoogle(o))
+    a.setShortcut(QKeySequence(OPEN_GOOGLE))
+    a.triggered.connect(lambda: menuAction(self, dict(type='google')))
+    a = menu.addAction('Add requesting to notice')
+    a.setShortcut(QKeySequence(ADD_REQ_NOTICE))
+    a.triggered.connect(lambda: menuAction(self, dict(type='notice', context='requesting')))
+    a = menu.addAction('Add checked to notice')
+    a.setShortcut(QKeySequence(ADD_CHECK_NOTICE))
+    a.triggered.connect(lambda: menuAction(self, dict(type='notice', context='checked')))
+    a = menu.addAction('Clear notice')
+    a.setShortcut(QKeySequence(CLEAR_NOTICE))
+    a.triggered.connect(lambda: menuAction(self, dict(type='notice', context='')))
 
-# sys.stderr.write("sys.version_info:"+str(sys.version_info))
+def shortcutKeys(self, old_func):
+    res = old_func(self)
+    mw = self.mw
+    reviewer = mw.reviewer
+    res.append((OPEN_DICT, lambda: menuAction(reviewer, dict(type='dict', kana=False))))
+    res.append((OPEN_DICT_KANA, lambda: menuAction(reviewer, dict(type='dict', kana=True))))
+    res.append((OPEN_WEB_DICT, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=False))))
+    res.append((OPEN_WEB_DICT_AUDIO, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=True))))
+    res.append((EDIT_AUDIO, lambda: menuAction(reviewer, dict(type='audio', sentence=False))))
+    res.append((EDIT_SENTENCE_AUDIO, lambda: menuAction(reviewer, dict(type='audio', sentence=True))))
+    res.append((OPEN_GOOGLE, lambda: menuAction(reviewer, dict(type='google'))))
+    res.append((ADD_REQ_NOTICE, lambda: menuAction(reviewer, dict(type='notice', context='requesting'))))
+    res.append((ADD_CHECK_NOTICE, lambda: menuAction(reviewer, dict(type='notice', context='checked'))))
+    res.append((CLEAR_NOTICE, lambda: menuAction(reviewer, dict(type='notice', context=''))))
+    res.append((ARROW_UP, lambda: arrow_handler(reviewer, 'up')))
+    res.append((ARROW_LEFT, lambda: arrow_handler(reviewer, 'left')))
+    res.append((ARROW_RIGHT, lambda: arrow_handler(reviewer, 'right')))
+    res.append((ARROW_DOWN, lambda: arrow_handler(reviewer, 'down')))
+    res.append((TOGGLE_TITLE_BAR, toggle_title_bar))
+    res.append((RESCHEDULE, lambda: reschedule(mw)))
+    res.append((RESCHEDULE_LEVEL1, lambda: reschedule(mw, 1)))
+    res.append((RESCHEDULE_LEVEL2, lambda: reschedule(mw, 2)))
+    res.append((RESCHEDULE_LEVEL3, lambda: reschedule(mw, 3)))
+    res.append((RESCHEDULE_LEVEL4, lambda: reschedule(mw, 4)))
+    res.append((RESCHEDULE_TOMORROW, lambda: reschedule(mw, 'tomorrow')))
+    return res
+
 addHook("browser.setupMenus", onSetupMenus)
-
-origKeyHandler = Reviewer._keyHandler
-Reviewer._keyHandler = newKeyHandler
+old_func = Reviewer._shortcutKeys
+Reviewer._shortcutKeys = lambda self: shortcutKeys(self, old_func)
 AutoSync()

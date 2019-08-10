@@ -67,7 +67,7 @@ def editAudio(note, sentence=False):
     match = re.search("\[sound:(.*?)\]", audio)
     if match:
         audio_file = mw.col.media.dir().replace(' ', '\ ') + '/' + match.group(1)
-        print('open -a /Applications/Audacity.app ' + audio_file)
+        # print('open -a /Applications/Audacity.app ' + audio_file)
         os.system('open -a /Applications/Audacity.app ' + audio_file)
 
 def openGoogle(note):
@@ -231,7 +231,7 @@ def onSetupMenus(self):
     a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=False)))
     a = menu.addAction('Open Web Dict (Only Audio)')
     a.setShortcut(QKeySequence(OPEN_WEB_DICT_AUDIO))
-    a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=False)))
+    a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=True)))
     a = menu.addAction('Edit Audio')
     a.setShortcut(QKeySequence(EDIT_AUDIO))
     a.triggered.connect(lambda: menuAction(self, dict(type='audio', sentence=False)))

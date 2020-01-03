@@ -256,6 +256,7 @@ def shortcutKeys(self, old_func):
     mw = self.mw
     reviewer = mw.reviewer
     res.append((OPEN_DICT, lambda: menuAction(reviewer, dict(type='dict', kana=False))))
+    res.append(('_', lambda: menuAction(reviewer, dict(type='dict', kana=False))))
     res.append((OPEN_DICT_KANA, lambda: menuAction(reviewer, dict(type='dict', kana=True))))
     res.append((OPEN_WEB_DICT, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=False))))
     res.append((OPEN_WEB_DICT_AUDIO, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=True))))

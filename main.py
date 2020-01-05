@@ -43,7 +43,7 @@ def openDict(note, kana=False):
     if kana and 'kana' in note:
         os.system('open dict:///' + note['kana'])
     elif 'word' in note:
-        os.system('open dict:///' + note['word'])
+        os.system('open dict:///"' + note['word'] + '"')
 
 def openWebDict(note, only_audio=False):
     if 'word' not in note:

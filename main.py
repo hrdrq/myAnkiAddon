@@ -19,6 +19,7 @@ OPEN_WEB_DICT_AUDIO = "Alt+Z"
 EDIT_AUDIO = "Alt+X"
 EDIT_SENTENCE_AUDIO = "Alt+S"
 OPEN_GOOGLE = "Alt+Q"
+OPEN_GOOGLE_IMAGE = "Alt+W"
 ADD_REQ_NOTICE = "Alt+C"
 ADD_CHECK_NOTICE = "Alt+D"
 CLEAR_NOTICE = "Alt+E"
@@ -75,8 +76,17 @@ def openGoogle(note):
     if 'word' not in note:
         return
     word = note['word']
-    url = 'https://www.google.co.jp/search?q={}'.format(quote(word))
+    url = 'https://www.google.com/search?q={}'.format(quote(word))
     webbrowser.open(url)
+    os.system('open -a Anki')
+
+def openGoogleImage(note):
+    if 'word' not in note:
+        return
+    word = note['word']
+    url = 'https://www.google.com/search?tbm=isch&q={}'.format(quote(word))
+    webbrowser.open(url)
+    os.system('open -a Anki')
 
 def setNotice(note, context):
     if 'notice' in note:
@@ -95,6 +105,8 @@ def menuAction(self, params):
         editAudio(note, params['sentence'])
     elif params['type'] == 'google':
         openGoogle(note)
+    elif params['type'] == 'google_image':
+        openGoogleImage(note)
     elif params['type'] == 'notice':
         setNotice(note, params['context'])
 
@@ -242,6 +254,9 @@ def onSetupMenus(self):
     a = menu.addAction('Open Google')
     a.setShortcut(QKeySequence(OPEN_GOOGLE))
     a.triggered.connect(lambda: menuAction(self, dict(type='google')))
+    a = menu.addAction('Open Google image')
+    a.setShortcut(QKeySequence(OPEN_GOOGLE_IMAGE))
+    a.triggered.connect(lambda: menuAction(self, dict(type='google_image')))
     a = menu.addAction('Add requesting to notice')
     a.setShortcut(QKeySequence(ADD_REQ_NOTICE))
     a.triggered.connect(lambda: menuAction(self, dict(type='notice', context='requesting')))
@@ -258,12 +273,14 @@ def shortcutKeys(self, old_func):
     reviewer = mw.reviewer
     res.append((OPEN_DICT, lambda: menuAction(reviewer, dict(type='dict', kana=False))))
     res.append(('_', lambda: menuAction(reviewer, dict(type='dict', kana=False))))
+    res.append(('`', lambda: menuAction(reviewer, dict(type='dict', kana=False))))
     res.append((OPEN_DICT_KANA, lambda: menuAction(reviewer, dict(type='dict', kana=True))))
     res.append((OPEN_WEB_DICT, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=False))))
     res.append((OPEN_WEB_DICT_AUDIO, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=True))))
     res.append((EDIT_AUDIO, lambda: menuAction(reviewer, dict(type='audio', sentence=False))))
     res.append((EDIT_SENTENCE_AUDIO, lambda: menuAction(reviewer, dict(type='audio', sentence=True))))
     res.append((OPEN_GOOGLE, lambda: menuAction(reviewer, dict(type='google'))))
+    res.append((OPEN_GOOGLE_IMAGE, lambda: menuAction(reviewer, dict(type='google_image'))))
     res.append((ADD_REQ_NOTICE, lambda: menuAction(reviewer, dict(type='notice', context='requesting'))))
     res.append((ADD_CHECK_NOTICE, lambda: menuAction(reviewer, dict(type='notice', context='checked'))))
     res.append((CLEAR_NOTICE, lambda: menuAction(reviewer, dict(type='notice', context=''))))

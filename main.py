@@ -160,76 +160,6 @@ def reschedule(self, level=None):
         tooltip('Rescheduled for review in ' + str(days) + ' days')
         self.reset()
 
-class AutoSync:
-
-    def syncDecks(self):
-        """Force sync if in any of the below states"""
-        self.timer = None
-        # if mw.state in ["deckBrowser", "overview", "review"]:
-        if mw.state in ["overview", "review"]:
-            mw.onSync()
-        else:
-            # Not able to sync. Wait another 2 minutes
-            self.startSyncTimer(self.retryPeriod)
-
-    def startSyncTimer(self, minutes):
-        """Start/reset the timer to sync deck"""
-        if self.timer is not None:
-            self.timer.stop()
-        self.timer = mw.progress.timer(
-            1000 * 60 * minutes, self.syncDecks, False)
-
-    def resetTimer(self, minutes):
-        """Only reset timer if the timer exists"""
-        if self.timer is not None:
-            self.startSyncTimer(minutes)
-
-    def stopTimer(self):
-        if self.timer is not None:
-            self.timer.stop()
-        self.timer = None
-
-    def updatedHook(self, *args):
-        """Start/restart timer to trigger if idle for a certain period"""
-        self.startSyncTimer(self.idlePeriod)
-
-    def activityHook(self, *args):
-        """Reset the timer if there is some kind of activity"""
-        self.resetTimer(self.idlePeriod)
-
-    def syncHook(self, state):
-        """Stop the timer if synced via other methods"""
-        if state == "login":
-            self.stopTimer()
-
-    def __init__(self):
-        self.idlePeriod = AUTOSYNC_IDLE_PERIOD
-        self.retryPeriod = AUTOSYNC_RETRY_PERIOD
-        self.timer = None
-
-        updatedHooks = [
-            "showQuestion",
-            "reviewCleanup",
-            "editFocusGained",
-            "noteChanged",
-            "reset",
-            "tagsUpdated"
-        ]
-
-        activtyHooks = [
-            "showAnswer",
-            "newDeck"
-        ]
-
-        for hookName in updatedHooks:
-            addHook(hookName, self.updatedHook)
-
-        for hookName in activtyHooks:
-            addHook(hookName, self.activityHook)
-
-        addHook("sync", self.syncHook)
-
-
 def onSetupMenus(self):
     menu = self.form.menuEdit
     menu.addSeparator()
@@ -300,4 +230,3 @@ def shortcutKeys(self, old_func):
 addHook("browser.setupMenus", onSetupMenus)
 old_func = Reviewer._shortcutKeys
 Reviewer._shortcutKeys = lambda self: shortcutKeys(self, old_func)
-AutoSync()

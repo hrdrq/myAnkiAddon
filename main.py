@@ -47,20 +47,28 @@ def openDict(note, kana=False):
         os.system('open dict:///"' + note['word'] + '"')
     os.system('open -a Anki')
 
+# def openWebDict(note, only_audio=False):
+#     if 'word' not in note:
+#         return
+#     word = note['word']
+#     url = DICT_URL + '?word=' + quote(word.encode('utf8'))
+#     if only_audio:
+#         url += '&onlyAudio=true'
+#     if 'audio' in note:
+#         audio = note['audio']
+#         match = re.search("\[sound:(.*?)\.mp3\]", audio)
+#         if match:
+#             audio_name = match.group(1)
+#             os.system("echo '%s' | tr -d '\n'| pbcopy" % audio_name)
+#     webbrowser.open(url)
+
 def openWebDict(note, only_audio=False):
     if 'word' not in note:
         return
     word = note['word']
-    url = DICT_URL + '?word=' + quote(word.encode('utf8'))
-    if only_audio:
-        url += '&onlyAudio=true'
-    if 'audio' in note:
-        audio = note['audio']
-        match = re.search("\[sound:(.*?)\.mp3\]", audio)
-        if match:
-            audio_name = match.group(1)
-            os.system("echo '%s' | tr -d '\n'| pbcopy" % audio_name)
+    url = f'https://forvo.com/word/{quote(word.encode("utf8"))}/#ja'
     webbrowser.open(url)
+
 
 def editAudio(note, sentence=False):
     if 'audio' not in note:
@@ -300,4 +308,4 @@ def shortcutKeys(self, old_func):
 addHook("browser.setupMenus", onSetupMenus)
 old_func = Reviewer._shortcutKeys
 Reviewer._shortcutKeys = lambda self: shortcutKeys(self, old_func)
-AutoSync()
+# AutoSync()

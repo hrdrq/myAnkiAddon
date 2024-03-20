@@ -12,10 +12,10 @@ from anki.hooks import addHook
 from aqt.reviewer import Reviewer
 from aqt.qt import QKeySequence, Qt
 
-OPEN_DICT = "Alt+V"
+OPEN_DICT = "Alt+Z"
 OPEN_DICT_KANA = "Alt+F"
 OPEN_WEB_DICT = "Alt+A"
-OPEN_WEB_DICT_AUDIO = "Alt+Z"
+# OPEN_WEB_DICT_AUDIO = "Alt+Z"
 EDIT_AUDIO = "Alt+X"
 EDIT_SENTENCE_AUDIO = "Alt+S"
 OPEN_GOOGLE = "Alt+Q"
@@ -40,12 +40,18 @@ DICT_URL = "http://localhost:8889/static/dm/index.html#/ja/pc"
 AUTOSYNC_IDLE_PERIOD = 20
 AUTOSYNC_RETRY_PERIOD = 2
 
+# def openDict(note, kana=False):
+#     if kana and 'kana' in note:
+#         os.system('open dict:///' + note['kana'])
+#     elif 'word' in note:
+#         os.system('open dict:///"' + note['word'] + '"')
+#     os.system('open -a Anki')
 def openDict(note, kana=False):
-    if kana and 'kana' in note:
-        os.system('open dict:///' + note['kana'])
-    elif 'word' in note:
-        os.system('open dict:///"' + note['word'] + '"')
-    os.system('open -a Anki')
+    if 'word' not in note:
+        return
+    word = note['word'].replace('/', '')
+    url = f'http://localhost:8767/?word={quote(word.encode("utf8"))}'
+    webbrowser.open(url)
 
 # def openWebDict(note, only_audio=False):
 #     if 'word' not in note:
@@ -168,76 +174,6 @@ def reschedule(self, level=None):
         tooltip('Rescheduled for review in ' + str(days) + ' days')
         self.reset()
 
-class AutoSync:
-
-    def syncDecks(self):
-        """Force sync if in any of the below states"""
-        self.timer = None
-        # if mw.state in ["deckBrowser", "overview", "review"]:
-        if mw.state in ["overview", "review"]:
-            mw.onSync()
-        else:
-            # Not able to sync. Wait another 2 minutes
-            self.startSyncTimer(self.retryPeriod)
-
-    def startSyncTimer(self, minutes):
-        """Start/reset the timer to sync deck"""
-        if self.timer is not None:
-            self.timer.stop()
-        self.timer = mw.progress.timer(
-            1000 * 60 * minutes, self.syncDecks, False)
-
-    def resetTimer(self, minutes):
-        """Only reset timer if the timer exists"""
-        if self.timer is not None:
-            self.startSyncTimer(minutes)
-
-    def stopTimer(self):
-        if self.timer is not None:
-            self.timer.stop()
-        self.timer = None
-
-    def updatedHook(self, *args):
-        """Start/restart timer to trigger if idle for a certain period"""
-        self.startSyncTimer(self.idlePeriod)
-
-    def activityHook(self, *args):
-        """Reset the timer if there is some kind of activity"""
-        self.resetTimer(self.idlePeriod)
-
-    def syncHook(self, state):
-        """Stop the timer if synced via other methods"""
-        if state == "login":
-            self.stopTimer()
-
-    def __init__(self):
-        self.idlePeriod = AUTOSYNC_IDLE_PERIOD
-        self.retryPeriod = AUTOSYNC_RETRY_PERIOD
-        self.timer = None
-
-        updatedHooks = [
-            "showQuestion",
-            "reviewCleanup",
-            "editFocusGained",
-            "noteChanged",
-            "reset",
-            "tagsUpdated"
-        ]
-
-        activtyHooks = [
-            "showAnswer",
-            "newDeck"
-        ]
-
-        for hookName in updatedHooks:
-            addHook(hookName, self.updatedHook)
-
-        for hookName in activtyHooks:
-            addHook(hookName, self.activityHook)
-
-        addHook("sync", self.syncHook)
-
-
 def onSetupMenus(self):
     menu = self.form.menuEdit
     menu.addSeparator()
@@ -250,9 +186,9 @@ def onSetupMenus(self):
     a = menu.addAction('Open Web Dict')
     a.setShortcut(QKeySequence(OPEN_WEB_DICT))
     a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=False)))
-    a = menu.addAction('Open Web Dict (Only Audio)')
-    a.setShortcut(QKeySequence(OPEN_WEB_DICT_AUDIO))
-    a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=True)))
+    # a = menu.addAction('Open Web Dict (Only Audio)')
+    # a.setShortcut(QKeySequence(OPEN_WEB_DICT_AUDIO))
+    # a.triggered.connect(lambda: menuAction(self, dict(type='web_dict', only_audio=True)))
     a = menu.addAction('Edit Audio')
     a.setShortcut(QKeySequence(EDIT_AUDIO))
     a.triggered.connect(lambda: menuAction(self, dict(type='audio', sentence=False)))
@@ -284,7 +220,7 @@ def shortcutKeys(self, old_func):
     res.append(('`', lambda: menuAction(reviewer, dict(type='dict', kana=False))))
     res.append((OPEN_DICT_KANA, lambda: menuAction(reviewer, dict(type='dict', kana=True))))
     res.append((OPEN_WEB_DICT, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=False))))
-    res.append((OPEN_WEB_DICT_AUDIO, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=True))))
+    # res.append((OPEN_WEB_DICT_AUDIO, lambda: menuAction(reviewer, dict(type='web_dict', only_audio=True))))
     res.append((EDIT_AUDIO, lambda: menuAction(reviewer, dict(type='audio', sentence=False))))
     res.append((EDIT_SENTENCE_AUDIO, lambda: menuAction(reviewer, dict(type='audio', sentence=True))))
     res.append((OPEN_GOOGLE, lambda: menuAction(reviewer, dict(type='google'))))

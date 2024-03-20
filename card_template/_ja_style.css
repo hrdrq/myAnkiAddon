@@ -1,0 +1,323 @@
+.meaning {
+  color: white;
+}
+.meaning span[style*="border:solid 1px"] {
+  border: none !important;
+}
+
+.number, .mac_dict .sn {
+  color: #0a91ab !important;
+  font-size: 80%;
+  /* position: absolute;
+  margin-top: 4px; */
+}
+/* span[data-txt-len="1"] {
+  border-color: #616f39 !important;
+  border: none !important;
+}
+span[data-txt-len="2"] {
+  color: #0a91ab !important;
+  border-color: #0a91ab !important;
+} */
+span[data-txt-len="2"] * {
+  color: #0a91ab !important;
+}
+.example, .mac_dict .eg[role="text"] {
+  color: #a7d129;
+  font-size: 80%;
+}
+.not_example {
+  color: white;
+  font-size: 20px;
+}
+.note, .note *{
+  color: lightgray;
+  font-size: 16px;
+}
+.season {
+  color: lightgreen;
+  display: none;
+}
+.quote {
+  color: lightpink;
+  display: none;
+}
+.derivative {
+  color: lightsalmon;
+}
+.grammar, .x_xdt {
+  color: #dfbebe !important;
+  font-size: 80%;
+}
+.x_xdt .inf {
+  margin-left: 6px;
+}
+.grammar * {
+  color: #8d6262 !important;
+}
+.speech, .speech_sub {
+  color: olivedrab;
+  font-size: 70%;
+  /* display: none; */
+}
+.pron {
+  color: cadetblue;
+}
+.source {
+  color: fuchsia;
+  display: none;
+}
+.category {
+    color: #978d58;
+}
+.word {
+    font-size: 140%;
+    color: black;
+    background-color: #ffbd69;
+    padding: 10px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+.attribute {
+    background-color: #0c3c78;
+    padding: 10px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+
+}
+.kana {
+    font-size: 85%;
+    color: #4ecca3;
+    display: inline-block;
+    padding: 10px;
+}
+.kana .pitch {
+    margin-right: 10px;
+}
+.kana .descent {
+    color: #eae7af;
+}
+.origin {
+    padding: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    color: #fd7014;
+}
+.question {
+    text-align: center;
+    margin-top: 100px;
+    /* margin-left: 50px; */
+}
+.question_word {
+    font-size: 260%;
+    color: #21e6c1;
+}
+
+.mac_dict .posg {
+    color: lightgray;
+    font-size: 70%;
+}
+.mac_dict .se3 {
+    display: block;
+}
+
+.question_accent .kana_accent {
+  font-size: 1.8em;
+  margin-top: 100px;
+  color: #ffdf77;
+}
+
+.answer_accent {
+  padding-top: 80px;
+}
+
+.answer_accent .kana_accent {
+  font-size: 1.8em;
+}
+
+.word_accent {
+  font-size: 1.0em;
+}
+
+.tags_accent {
+  color: lightgray;
+  margin-top: 10px;
+  font-size: 0.8em;
+}
+
+.accent_kana .a1 {
+  PADDING: 1px 0px 0px 0px;
+  MARGIN: 0px 0px 0px 0px;
+  BORDER-BOTTOM: #FF6633 1px solid;
+  BORDER-RIGHT: #FF6633 1px solid;
+}
+
+.accent_kana .a2 {
+  PADDING: 1px 0px 0px 0px;
+  MARGIN: 0px 0px 0px 0px;
+  BORDER-TOP: #FF6633 1px solid;
+  BORDER-RIGHT: #FF6633 1px solid;
+}
+
+.accent_kana .a3 {
+  PADDING: 1px 0px 0px 0px;
+  MARGIN: 0px 0px 0px 0px;
+  BORDER-BOTTOM: #FF6633 1px solid;
+}
+
+.accent_kana .a4 {
+  PADDING: 1px 0px 0px 0px;
+  MARGIN: 0px 0px 0px 0px;
+  BORDER-TOP: #FF6633 1px solid;
+}
+
+#checked, #unchecked {
+  position: fixed;
+  right: 50px;
+  top: 30px;
+}
+.checked::before {
+  content: "";
+  display: block;
+  height: 10px;
+  width: 20px;
+  border-bottom: 3px solid #25AF01;
+  border-left: 3px solid #25AF01;
+  transform: rotate(-45deg);
+}
+.unchecked::before {
+  content: '?';
+  color: red;
+}
+
+.phraseAccent span.accent_top{
+  color:red;
+  border-top: solid red 1px;
+  padding-top:1px;
+  background-image: url("_accent.png");
+  background-repeat: no-repeat;
+  background-position: right top;
+}
+.phraseAccent span.accent_plain{
+border-top: solid 1px;
+padding-top:1px;
+}
+
+a {
+  text-decoration: none;
+}
+
+.pr .xr a .x_rr {
+  color: lightgray;
+  font-size: 60%;
+  border: solid;
+  border-width: 0.01px;
+  padding: 1.2px 3.5px;
+  margin-right: 4px;
+}
+
+.etym, .work {
+  color: gray;
+  font-size: 70%;
+}
+.etym::before, .work::before {
+  content: "〔";
+}
+.etym::after, .work::after {
+  content: "〕";
+}
+
+.fg {
+  color: gray;
+  font-size: 70%;
+}
+.fg .lbl {
+  padding: 1px;
+  border: solid;
+  border-width: 1px;
+}
+
+.t_ルビ仮名 {
+  font-size: 70%;
+}
+
+.subEntryBlock {
+  color: lightgray;
+  font-size: 80%;
+  margin-top: 10px;
+}
+.subEntryBlock .subEntry {
+  display: block;
+}
+.subEntryBlock .posg {
+  font-size: 100%
+}
+
+/* .toPhrase {
+  margin-top: 20px;
+  color: gray;
+  font-size: 80%;
+} */
+.toPhrase .xr {
+  display: block;
+}
+
+.xrgBlock {
+  font-size: 85%;
+  color: lightgray;
+  margin-top: 5px;
+}
+
+.xrgBlock .xr{
+  display: block;
+}
+.xrgBlock a {
+  color: lightgray;
+}
+
+.x_rr, .x_sqb, .x_xoLblBlk {
+  border-style: solid;
+  border-width: 0.1px;
+  padding: 1px;
+  margin-right: 1px;
+}
+
+.ref {
+  font-size: 80%;
+  color: gray;
+}
+.ref .work::before, .ref .work::after {
+  content: none;
+}
+.ref .work {
+  font-size: 100%;
+}
+
+.t_idioms {
+  display: block;
+  color: #dfbebe ;
+}
+
+.general-text {
+  color: inherit;
+  font-size: inherit !important;
+}
+
+.x_xdh {
+  display: block;
+  color: #dfbebe !important;
+}
+.x_xdh .sn, .x_xdh .posg {
+  color: inherit !important;
+  font-size: inherit !important;
+}
+
+.x_ni .sy {
+  font-size: 80%;
+}
+.x_ni .sy::before {
+  content: "（";
+}
+.x_ni .sy::after {
+  content: "）";
+}

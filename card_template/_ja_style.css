@@ -55,6 +55,13 @@ a.non_clickable {
     color: pink;
     padding-right: 2px;
 }
+.katsuyo .kana {
+  font-size: 100%;
+}
+.katsuyo_word {
+  display: inline-block;
+  min-width: 100px;
+}
 .memo.decoration {
   border-style: dashed;
   border-color: darkred;
@@ -126,6 +133,7 @@ a.non_clickable {
   font-size: 1.0em;
 }
 
+/**** mac_dict ****/
 .x_xd1 {
   display: block;
 }
@@ -136,7 +144,6 @@ a.non_clickable {
   font-size: 0.8em;
 }
 
-/**** mac_dict ****/
 
 .mac_dict .sn {
   color: #39afc6 !important;
@@ -264,7 +271,7 @@ a.non_clickable {
 }
 
 /**** 品詞 ****/
-.se2Group .x_xdh {
+.se2Group .x_xdh, .se1 .x_xdh {
   display: block;
   color: #98bae2 !important;
   background-color: rgb(6, 64, 78);

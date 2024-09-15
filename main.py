@@ -77,9 +77,11 @@ def openWebDict(note, only_audio=False):
 
 
 def editAudio(note, sentence=False):
-    if 'audio' not in note:
+    if not sentence and 'audio' not in note:
         return
-    audio = note['sentence-audio' if sentence else 'audio']
+    if sentence and 'sentence_audio' not in note:
+        return
+    audio = note['sentence_audio' if sentence else 'audio']
     match = re.search("\[sound:(.*?)\]", audio)
     if match:
         audio_file = mw.col.media.dir().replace(' ', '\ ') + '/' + match.group(1)
@@ -98,7 +100,9 @@ def openGoogleImage(note):
     if 'word' not in note:
         return
     word = note['word']
-    url = 'https://www.google.com/search?tbm=isch&q={}'.format(quote(word))
+    url = f"https://www.google.com/search?q={quote(word + ' イラスト')}&tbm=isch&lr=lang_ja"
+    webbrowser.open(url)
+    url = f"https://www.google.com/search?q={quote(word)}&tbm=isch&lr=lang_ja"
     webbrowser.open(url)
     os.system('open -a Anki')
 

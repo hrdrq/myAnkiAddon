@@ -15,6 +15,17 @@ a.non_clickable {
   pointer-events: none;
 }
 
+.sentence {
+  font-size: 200%;
+}
+.sentence ruby rt {
+  font-size: 32%;
+}
+.sentence_translation {
+  color: green;
+  margin-bottom: 20px;
+}
+
 
 /******** Front ********/
 .question {
@@ -55,14 +66,17 @@ a.non_clickable {
     color: pink;
     padding-right: 2px;
 }
+.katsuyo {
+  font-size: 80%;
+ }
 .katsuyo .kana {
   font-size: 100%;
 }
-.katsuyo_word {
+.katsuyo_word:not(:empty) {
   display: inline-block;
   min-width: 100px;
 }
-.memo.decoration {
+.memo.decoration:not(:empty) {
   border-style: dashed;
   border-color: darkred;
   margin: 10px;
@@ -73,10 +87,31 @@ a.non_clickable {
 .memo.decoration ul {
   margin: 2px;
 }
+.example_sentence:not(:empty) {
+  border-style: dashed;
+  border-color: green;
+  margin: 4px;
+  padding: 1px;
+  font-size: 85%;
+  background-color: rgb(40, 40, 40);
+}
+.example_sentence:not(:empty) .example_sentence_btn{
+  color: gray;
+  font-size: 90%;
+  border-style: solid;
+  border-width: 0.1px;
+}
 .origin {
     padding-left: 3px;
     vertical-align: middle;
     color: #fd7014;
+}
+
+.has_image {
+  position: fixed;
+  right: -10px;
+  top: -10px;
+  opacity: 0.5;
 }
 
 .external_link {
@@ -91,24 +126,58 @@ a.non_clickable {
   color: white !important;
   position: fixed;
   position: -webkit-fixed;
-  top: calc(100vh - 210px);
+  top: calc(100vh - 110px);
   transform:translateY(-100%);
   opacity: 0.5;
 }
-#open_forvo {
+.external_link:nth-child(1) {
   right: 10px
 }
-#open_google {
+.external_link:nth-child(2) {
   right: 50px
 }
-#open_dict_kana {
+.external_link:nth-child(3) {
   right: 90px
 }
-#open_dict {
+.external_link:nth-child(4) {
   right: 130px
 }
-#make_clickable {
+.external_link:nth-child(5) {
   right: 170px
+}
+.external_link:nth-child(6) {
+  right: 210px
+}
+.external_link:nth-child(7) {
+  right: 250px
+}
+
+.google_search_hit:not(:empty) {
+  position: fixed;
+  position: -webkit-fixed;
+  left: 0;
+  top: calc(100vh - 110px);
+  transform:translateY(-100%);
+  font-size: 75%;
+  background-color: green;
+  color: white;
+  opacity: 0.7;
+}
+
+.question_info:not(:empty) {
+  font-size: 85%;
+}
+.question_info .category:not(:empty) {
+  color: lightgreen;
+  border-style: solid;
+  border-width: 0.1px;
+  padding: 2px;
+}
+.question_info .correct_rate {
+  color: #ffdf77;
+}
+.question_info .correct_rate:not(:empty)::after {
+  content: "%"
 }
 
 /******** Back(Accent) ********/
@@ -310,3 +379,4 @@ a.non_clickable {
   font-size: inherit;
   color: white;
 }
+

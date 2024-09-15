@@ -3,7 +3,45 @@ function main () {
   pitch();
   setHR()
   setRefDictLink()
-  setMemoClassOfJpNotes()
+  format_google_search_hit()
+  check_image_exist()
+}
+
+function toggle_katsuyo() {
+  const katsuyo_group = document.querySelector('.answer .katsuyo_group')
+  if (!katsuyo_group) {
+    return
+  }
+
+  if (katsuyo_group.style.display == 'none') {
+    katsuyo_group.style.display = 'block'
+  } else {
+    katsuyo_group.style.display = 'none'
+  }
+}
+
+function check_image_exist () {
+  const has_image = document.querySelector('.has_image')
+  if (!has_image) {
+    return
+  }
+  const images = document.querySelectorAll('.image img')
+  if (images.length > 0) {
+    has_image.style.display = 'block'
+  }
+}
+
+function show_example_sentence_trans () {
+  const exampleSentenceTrans = document.querySelector('.example_sentence_trans')
+  exampleSentenceTrans.style.display = "block"
+}
+
+function format_google_search_hit () {
+  const googleSearchHit = document.querySelector('.google_search_hit')
+  if (!googleSearchHit) return
+  const number = googleSearchHit.textContent
+  if (!number) return
+  googleSearchHit.innerHTML = Number(number).toLocaleString('en', {useGrouping:true})
 }
 
 function add_kana_to_question_for_diff_pronunciation_word() {
@@ -141,17 +179,6 @@ function setHR () {
     const div = divs[i]
     const hr = document.createElement("hr")
     div.before(hr)
-  }
-}
-
-function setMemoClassOfJpNotes () {
-  const cardTypeSpan = document.querySelector('#card_type')
-  const deckNameSpan = document.querySelector('#deck_name')
-  const memoSpan = document.querySelector('.memo')
-  if (cardTypeSpan && cardTypeSpan.textContent == '日本語'
-      && deckNameSpan && deckNameSpan.textContent.startsWith('All::日本語')
-      && memoSpan.textContent) {
-    memoSpan.classList.add('decoration')
   }
 }
 
